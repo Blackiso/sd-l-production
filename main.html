@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="./styles/flags.css">
+    <link rel="stylesheet" type="text/css" href="./styles/main.css">
+    <script src="./scripts/vue.global.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="navigation-menu">
+            <div class="tabs-titles">
+                <div class="logo" :class="{ 'tab-active': t.isActive }" v-for="t in tabs" :key="t.id"
+                    @click="switchTab(t.id)">
+                    <img src="./images/icon.ico" alt="">
+                    <span class="title">{{t.title}}</span>
+                    <ion-icon @click="closeTab(t.id, $event)" name="close-outline"></ion-icon>
+                </div>
+            </div>
+            <ion-icon @click="openNewTab" v-if="tabs.length < 3" name="add-circle-outline"></ion-icon>
+
+            <div class="dragable"></div>
+            <span class="zoom-level"></span>
+            <div class="lds-ring page-loader" v-if="isTabLoading">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <div class="drop-menu" v-if="showDropMenu">
+                <div @click="fullScreen">
+                    <ion-icon name="expand-outline"></ion-icon>
+                    <span>Full Screen</span>
+                </div>
+                <div @click="zoom(1)">
+                    <ion-icon name="add-circle-outline"></ion-icon>
+                    <span>Zoom In</span>
+                </div>
+                <div @click="zoom(-1)">
+                    <ion-icon name="remove-circle-outline"></ion-icon>
+                    <span>Zoom Out</span>
+                </div>
+            </div>
+            <ion-icon @click="showBazarSearch = true" name="bag-outline"></ion-icon>
+            <ion-icon @click="showSearchBox = true" name="people-outline"></ion-icon>
+            <ion-icon @click="showDropMenu = !showDropMenu" name="options-outline"></ion-icon>
+            <ion-icon @click="goBack" name="arrow-back-outline"></ion-icon>
+            <ion-icon @click="reloadTab" name="refresh-outline"></ion-icon>
+            <ion-icon @click="minimizeWindow" name="remove-outline"></ion-icon>
+            <ion-icon @click="closeWindow" name="close-outline"></ion-icon>
+        </div>
+        <div class="loading-screen" v-if="isApploading">
+            <div class="lds-ring page-loader main-loader">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+        <div class="tabs">
+            <Webview v-for="t in tabs" :data="t" @loading="loadingEvent" :key="t.id" :ref="'webview-'+t.id"
+                :zoom="zoomLevel" @zoom="getZoomLevel" @link="openNewTabLink" />
+
+        </div>
+        <div class="settings-container hide">
+            <div class="settings">
+                <div class="header">
+                    <div>
+                        <ion-icon name="settings-outline"></ion-icon> Settings
+                        <ion-icon class="cl" name="close-outline"></ion-icon>
+                    </div>
+                </div>
+                <div class="body">
+                    <div>
+                        <label class="switch">
+                            <input id="proxy-toggle" type="checkbox" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <span>Proxy</span>
+                    </div>
+                    <div class="need_proxy">
+                        <label class="switch">
+                            <input id="notifications-toggle" type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                        <span>Notifications</span>
+                    </div>
+                    <div class="need_proxy">
+                        <label class="switch">
+                            <input id="offline-toggle" type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                        <span>Offline</span>
+                    </div>
+                    <div class="need_proxy">
+                        <label class="switch">
+                            <input id="language-toggle" type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                        <span>Language Filter</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showSuite">
+            <Suite :id="suiteId" @close="showSuite = false" />
+        </div>
+
+        <form v-if="showAddressBar" @submit="gotToAddress" class="address-bar">
+            <input v-model="address" type="text" placeholder="Address...">
+            <button class="address-icon">
+                <ion-icon name="search"></ion-icon>
+            </button>
+        </form>
+
+        <div class="bottom-box">
+            <div>
+                <Bazarsearch v-if="showBazarSearch" @close="showBazarSearch = false" />
+            </div>
+            <div v-if="showSearchBox">
+                <Searchbox @close="showSearchBox = false" />
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="./scripts/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="./scripts/ionicons/ionicons.js"></script>
+    <script>
+        let SUTE_SERVICE = {
+            subscribers: [],
+            subscribe(call) {
+                this.subscribers.push(call);
+            },
+            trigger(id) {
+                this.subscribers.forEach(sub => sub(id));
+            }
+        }
+    </script>
+    <script src="./scripts/components.js"></script>
+    <script src="./scripts/main.js"></script>
+
+</body>
+
+</html>
