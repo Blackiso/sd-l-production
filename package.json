@@ -1,8 +1,9 @@
 {
   "name": "stardoll-bl",
-  "version": "2.5.0-S",
-  "description": "",
+  "version": "2.5.1-S",
+  "description": "Stardoll Custom Launcher",
   "main": "index.js",
+  "repository": "https://github.com/Blackiso/sd-l-production.git",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --windows nsis:x64"
@@ -46,6 +47,7 @@
     "axios": "^1.1.2",
     "electron-context-menu": "^2.3.1",
     "electron-is-dev": "^2.0.0",
+    "electron-updater": "^5.3.0",
     "express": "^4.18.2",
     "fast-xml-parser": "^4.0.11",
     "hoxy": "^3.3.1",
