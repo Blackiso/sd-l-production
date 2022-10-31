@@ -1,9 +1,11 @@
 const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const hoxy = require('hoxy');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const isDev = require('electron-is-dev');
+const cors = require('cors');
 
 const { StardollLoader } = require('./scripts/StardollLoader');
 const { UsersLoader } = require('./scripts/UsersLoader');
@@ -27,6 +29,8 @@ const express = require('express');
 const express_app = express();
 const http = require('http');
 const express_port = 7000;
+
+let win;
 
 
 app.commandLine.appendSwitch('ppapi-flash-path', getPath('PepperFlashPlayer.dll'));
@@ -60,8 +64,6 @@ function createWindow() {
     let port = 9999;
     let host = 'http://127.0.0.1';
     let address = host + ':' + port;
-    let win;
-
 
     let proxy = hoxy.createServer({
 
@@ -84,8 +86,29 @@ function createWindow() {
                 nodeIntegration: true,
                 plugins: true,
                 enableRemoteModule: true,
-                spellcheck: true
+                spellcheck: true,
+                webSecurity: false
             }
+        });
+
+        // win.webContents.session.webRequest.onBeforeSendHeaders(
+        //     (details, callback) => {
+        //         callback({ requestHeaders: { Origin: '*', ...details.requestHeaders } });
+        //     },
+        // );
+
+        // win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+        //     callback({
+        //         responseHeaders: {
+        //             'Access-Control-Allow-Origin': ['*'],
+        //             ...details.responseHeaders,
+        //         },
+        //     });
+        // });
+
+        win.on('closed', () => {
+            app.quit();
+            process.exit();
         });
 
         win.loadURL(`file://${__dirname}/main.html`);
@@ -197,11 +220,34 @@ function createWindow() {
     });
     ////////////////
 
+    //SEARCH
+    proxy.intercept({
+        phase: 'request',
+        hostname: 'bl.stardoll.com'
+
+    }, (req, res, cycle) => {
+        req.hostname = '127.0.0.1';
+        req.port = 7000;
+    });
+    //////////////
+
     //CHAT FILE
     proxy.intercept({
         phase: 'request',
         fullUrl: 'http://cdn.stardoll.com/flash/chat_hp/Chat_hp.swf'
-        
+
+    }, (req, res, cycle) => {
+        console.log('chat');
+        req.hostname = '127.0.0.1';
+        req.port = 7000;
+    });
+    //////////////
+
+    //CHAT FILE
+    proxy.intercept({
+        phase: 'request',
+        fullUrl: 'http://cdn.stardoll.com/flash/starBazaar.swf'
+
     }, (req, res, cycle) => {
         console.log('chat');
         req.hostname = '127.0.0.1';
@@ -257,22 +303,25 @@ function createWindow() {
     });
     //////////////
 
+    //CACHE
+    proxy.intercept({
+        phase: 'response',
+        fullUrl: 'http://www.stardoll.com/en/party-chat/party.php',
+        as: 'string'
+    }, (req, res, cycle) => {
+        res.string = res.string.replace(/swf\?\d+/, 'swf?' + Math.floor(Math.random() * 1000000));
+    });
+    //////////////
+
+    app.on('window-all-closed', () => {
+        if (process.platform !== 'darwin') {
+            app.quit();
+        }
+
+        process.exit();
+    });
+
 }
-
-try {
-    app.whenReady().then(createWindow);
-}catch(e) {
-    console.log(e);
-}
-
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
-
-    process.exit();
-});
 
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -292,6 +341,10 @@ ipcMain.on('language_filter', (event, x) => {
 
 express_app.use(bodyParser.json());
 
+express_app.use(cors({
+    origin: '*'
+}));
+
 express_app.use(express.static('static'))
 
 express_app.get('/search', async (req, res) => {
@@ -309,6 +362,17 @@ express_app.get('/search', async (req, res) => {
     res.end(JSON.stringify(users));
 });
 
+express_app.get('/search/id', async (req, res) => {
+    let users = [];
+
+    try {
+        users = await UsersLoaderObject.getUserById(req.query.id);
+    } catch (e) { }
+
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(users));
+});
+
 express_app.post('/message', async (req, res) => {
     StardollLoaderObject.sendMessage(req.body.message, req.body.user);
     res.end('');
@@ -316,6 +380,11 @@ express_app.post('/message', async (req, res) => {
 
 express_app.get('/add', async (req, res) => {
     await StardollLoaderObject.sendFriendRequest(req.query.id);
+    res.end('');
+});
+
+express_app.get('/execute-search', async (req, res) => {
+    win.webContents.send('do-search', req.query.id);
     res.end('');
 });
 
@@ -415,3 +484,51 @@ express_app.server.setTimeout(600000);
 express_app.server.listen(express_port, () => {
     console.log(`Express listening on port ${express_port}`);
 });
+
+
+try {
+    app.whenReady().then(() => {
+
+        if (!isDev) {
+            let updateWin = new BrowserWindow({
+                width: 300,
+                height: 300,
+                resizable: false,
+                frame: false,
+                webPreferences: {
+                    nodeIntegration: true
+                }
+            });
+
+            updateWin.loadURL(`file://${__dirname}/update.html`);
+
+            // updateWin.webContents.openDevTools();
+            autoUpdater.checkForUpdates();
+
+            //UPDATES
+            autoUpdater.on('update-available', () => {
+                updateWin.webContents.send('update-available', true);
+            });
+
+            autoUpdater.on('update-not-available', () => {
+                updateWin.hide();
+                createWindow();
+            });
+
+            autoUpdater.on('update-downloaded', () => {
+                autoUpdater.quitAndInstall();
+            });
+        } else {
+            createWindow();
+        }
+
+    });
+} catch (e) {
+    console.log(e);
+}
+
+const util = require('util');
+
+let s = XMLParserObject.parse("<body rid='1027276397' xmlns='http://jabber.org/protocol/httpbind' sid='af88da31-5de8-4bcb-88ce-18f598c4203e'><message to='458125202@www.stardoll.com/0:Mia4' from='457896269@www.stardoll.com/1:amy.lang' type='partychat' id='invite' xmlns='jabber:client'><body>im_partyChat_invite<x>/party-chat/?menu=calendar</x></body></message></body>");
+
+console.log(util.inspect(s, false, null, true));

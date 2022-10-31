@@ -120,10 +120,10 @@
 
         <div class="bottom-box">
             <div>
-                <Bazarsearch v-if="showBazarSearch" @close="showBazarSearch = false" />
+                <Bazarsearch v-if="showBazarSearch" @close="showBazarSearch = false"></Bazarsearch>
             </div>
-            <div v-if="showSearchBox">
-                <Searchbox @close="showSearchBox = false" />
+            <div>
+                <Searchbox v-if="showSearchBox" ref="searchBox" @close="showSearchBox = false"></Searchbox>
             </div>
         </div>
 

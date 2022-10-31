@@ -41,6 +41,17 @@ let app = createApp({
             this.showAddressBar = !this.showAddressBar;
         });
 
+        ipcRenderer.on('do-search', (event, messages) => {
+            console.log('sdlkfjslkd', messages);
+            this.showSearchBox = true;
+            setTimeout(() => {
+                console.log(this.$refs);
+                console.log(this.$refs.searchBox);
+                this.$refs.searchBox.searchById(messages);
+            }, 100);
+            
+        });
+
         SUTE_SERVICE.subscribe((id) => {
             this.suiteId = id;
             this.showSuite = true;

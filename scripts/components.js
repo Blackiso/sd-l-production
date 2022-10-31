@@ -113,7 +113,7 @@ const Webview = {
             this.webviewObject.addEventListener('did-finish-load', (e) => {
                 this.data.title = this.webviewObject.getTitle();
                 this.$emit('zoom', this.webviewObject.getZoomLevel());
-                this.webviewObject.executeJavaScript('let __over = document.querySelector("#controlOverlay");__over && __over.remove();');
+                this.webviewObject.executeJavaScript('let __over=document.querySelector("#controlOverlay");function __searchUser(e){console.log("Searching user",e),fetch("http://bl.stardoll.com/execute-search?id="+e).then(console.log)}function __searchBazarItem(e){console.log(e)}__over&&__over.remove();');
             });
 
             this.webviewObject.addEventListener('did-stop-loading', (e) => {
@@ -144,6 +144,7 @@ const Searchbox = {
             keyword: null,
             users: [],
             search_url: 'http:127.0.0.1:7000/search?username=',
+            search_id_url: 'http:127.0.0.1:7000/search/id?id=',
             messageUser: null,
             message_url: 'http:127.0.0.1:7000/message',
             message: null,
@@ -182,13 +183,22 @@ const Searchbox = {
 
     },
     methods: {
+        searchById(id) {
+            fetch(this.search_id_url + id).then((response) => response.json()).then(data => {
+                this.setSearchResult(data);
+            });
+        },
         search(e) {
             e.preventDefault();
             fetch(this.search_url + this.keyword).then((response) => response.json()).then(data => {
-                this.user = [];
-                this.users = data;
-                this.keyword = null;
+                this.setSearchResult(data);
             });
+        },
+        setSearchResult(data) {
+            this.isCollapsed = false;
+            this.user = [];
+            this.users = data;
+            this.keyword = null;
         },
         sendMessage(e) {
             e.preventDefault();

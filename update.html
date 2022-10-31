@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update</title>
+    <link rel="stylesheet" type="text/css" href="./styles/main.css">
+    <script src="./scripts/vue.global.js"></script>
+
+    <style>
+        .container {
+            background-color: black;
+            height: 100vh;
+            width: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        img {
+            width: 30%;
+            animation-name: spin;
+            animation-duration: 5000ms;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+
+        p {
+            color: #b9b9b9;
+            font-size: 14px;
+            margin-top: 20px;
+            font-weight: 700;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <img src="./images/icon-1.png" alt="">
+        <p>{{currentState}}</p>
+    </div>
+</body>
+<script>
+    const { createApp } = Vue;
+    const { ipcRenderer } = require('electron');
+
+
+    let app = createApp({
+
+        data() {
+            return {
+                currentState: 'Checking For Updates'
+            }
+        },
+        mounted() {
+            ipcRenderer.on('update-available', () => {
+                this.currentState = 'Downloading Updates';
+            });
+        },
+        methods: {
+            
+        }
+    });
+
+    app.mount('#app');
+</script>
+
+</html>
