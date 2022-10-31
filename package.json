@@ -1,13 +1,13 @@
 {
   "name": "stardoll-bl",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "description": "Stardoll Custom Launcher",
   "main": "index.js",
   "repository": "https://github.com/Blackiso/sd-l-production.git",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --windows nsis:x64",
-    "pub": "electron-builder --windows nsis:x64 --publish always"
+    "build": "electron-builder --windows",
+    "pub": "electron-builder --windows --publish always"
   },
   "keywords": [],
   "author": "",
@@ -26,11 +26,13 @@
       "static"
     ],
     "win": {
+      "artifactName": "${productName} Setup ${version} ${arch}.${ext}",
       "target": [
         {
           "target": "nsis",
           "arch": [
-            "x64"
+            "x64",
+            "ia32"
           ]
         }
       ],

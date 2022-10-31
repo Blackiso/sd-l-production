@@ -526,9 +526,3 @@ try {
 } catch (e) {
     console.log(e);
 }
-
-const util = require('util');
-
-let s = XMLParserObject.parse("<body rid='1027276397' xmlns='http://jabber.org/protocol/httpbind' sid='af88da31-5de8-4bcb-88ce-18f598c4203e'><message to='458125202@www.stardoll.com/0:Mia4' from='457896269@www.stardoll.com/1:amy.lang' type='partychat' id='invite' xmlns='jabber:client'><body>im_partyChat_invite<x>/party-chat/?menu=calendar</x></body></message></body>");
-
-console.log(util.inspect(s, false, null, true));
